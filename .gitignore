@@ -1,0 +1,6 @@
+venv
+.env
+images
+*.json
+.streamlit
+__pycache__
