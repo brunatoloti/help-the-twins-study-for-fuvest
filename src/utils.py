@@ -1,8 +1,7 @@
 import base64
 import pandas as pd
 import streamlit as st
-
-from src.db import check_user
+import uuid
 
 
 def codifica():
@@ -21,16 +20,5 @@ def sign_up_user():
     st.button("Cadastrar")
 
 
-def login_user():
-    st.subheader("Login")
-    username = st.text_input("Nome de Usuário")
-    password = st.text_input("Senha", type="password")
-
-    if st.button("Entrar"):
-        if check_user(username, password):
-            st.session_state['logged_in'] = True
-            st.session_state['username'] = username
-            st.success(f"Bem-vindo, {username}!")
-            st.experimental_rerun()
-        else:
-            st.error("Nome de usuário ou senha incorretos.")
+def generate_uuid():
+    return uuid.uuid4()
