@@ -1,11 +1,18 @@
 import streamlit as st
-import pandas as pd
-import base64
 import streamlit_authenticator as stauth
 
 from src.db import get_all_users
 
 
+dashboard = st.Page(
+    "views/dashboard.py", title="Dashboard", icon=":material/bar_chart_4_bars:", default=True
+)
+first_phase = st.Page(
+    "views/first_phase.py", title="Primeira fase", icon=":material/rule:"
+)
+second_phase = st.Page(
+    "views/second_phase.py", title="Segunda fase", icon=":material/rule:"
+)
 
 st.set_page_config(layout="wide", page_title="Simulado Fuvest", page_icon="📚")
 
@@ -22,6 +29,7 @@ authenticator = stauth.Authenticate(credentials, "simulado_fuvest", "abcdef", co
 
 authenticator.login("main", "Login")
 authentication_status = st.session_state['authentication_status']
+st.session_state["authenticator"] = authenticator
 
 if authentication_status == False:
     st.error("Usuário/senha está incorreto")
@@ -30,51 +38,17 @@ if authentication_status == None:
     st.warning("Por favor, entre com seu usuário e senha")
 
 if authentication_status:
-    st.title('📚 Simulado Fuvest')
-    st.divider()
     authenticator.logout("Sair", "sidebar")
-    st.sidebar.title(f"Olá, {st.session_state['name']}!")
-
-    st.sidebar.subheader('Opções')
-
-    exam_type = st.sidebar.selectbox(
-        'Para qual fase você quer fazer o simulado?',
-        ('1ª fase', '2ª fase'),
-        index=None,
-        placeholder='Escolha uma opção'
+    pg = st.navigation(
+        {
+            "Desempenho": [dashboard],
+            "Provas": [first_phase, second_phase],
+        }
     )
-
-    if exam_type == '2ª fase':
-        st.sidebar.text_input('Digite sua Gemini API Key')
-
-    exam_qtd = st.sidebar.selectbox(
-        'Você quer fazer uma prova inteira de um determinado ano ou uma quantidade específica de questões de vários anos?',
-        ('Questões de um determinado ano', 'Questões de anos variados'),
-        index=None,
-        placeholder='Escolha uma opção'
+    pg.run()
+else:
+    pg = st.navigation(
+        pages=[dashboard],
+        position='hidden'
     )
-    if exam_qtd == 'Questões de um determinado ano':
-        exame_year = st.sidebar.selectbox(
-            'Selecione o ano da prova que quer fazer',
-            [y for y in range(2010, 2024, 1)],
-            index=None,
-            placeholder='Escolha uma opção'
-        )
-    elif exam_qtd == 'Questões de anos variados':
-        subject_list = st.sidebar.multiselect('Selecione as disciplinas que quer fazer',
-                                            options=['Matemática', 'Gramática', 'Literatura', 'História', 'Geografia', 'Química', 'Biologia', 'etc'],
-                                            placeholder='Disciplinas')
-        for subject in subject_list:
-            st.sidebar.selectbox(
-                f'Quantas questões de {subject}?',
-                ['Aleatório'] + [q for q in range(1, 11)],
-                index=None,
-                placeholder='Escolha uma opção'
-            )
-
-    df = pd.read_csv('df_teste.csv')
-    im = df['image_str'][0]
-    image_data = base64.b64decode(im)
-
-    st.image(image_data)
 
