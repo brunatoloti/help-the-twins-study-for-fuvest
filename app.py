@@ -5,13 +5,13 @@ from src.db import get_all_users
 
 
 dashboard = st.Page(
-    "views/dashboard.py", title="Dashboard", icon=":material/bar_chart_4_bars:", default=True
+    "src/views/dashboard.py", title="Dashboard", icon=":material/bar_chart_4_bars:", default=True
 )
 first_phase = st.Page(
-    "views/first_phase.py", title="Primeira fase", icon=":material/rule:"
+    "src/views/first_phase.py", title="Primeira fase", icon=":material/rule:"
 )
 second_phase = st.Page(
-    "views/second_phase.py", title="Segunda fase", icon=":material/rule:"
+    "src/views/second_phase.py", title="Segunda fase", icon=":material/rule:"
 )
 
 st.set_page_config(layout="wide", page_title="Simulado Fuvest", page_icon="📚")

@@ -4,3 +4,7 @@ images
 *.json
 .streamlit
 __pycache__
+*.xlsx
+*.csv
+exams
+exams_extract

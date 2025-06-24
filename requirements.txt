@@ -2,3 +2,6 @@ streamlit
 streamlit-authenticator
 pandas
 st-gsheets-connection
+openai>=1.54.4
+python-dotenv
+plotly
