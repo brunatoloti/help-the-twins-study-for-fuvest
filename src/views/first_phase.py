@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import pandas as pd
+import random
 import streamlit as st
 import time
 import uuid
@@ -10,7 +11,7 @@ from src.db import get_all_users, save_answers_session, save_grade_session
 st.title('📚 Primeira fase')
 st.divider()
 
-quiz = json.loads(json.load(open('data/questions/exam_questions_2024.json')))['questoes']
+database_questions = json.loads(json.load(open('data/questions/exam_questions_2024.json')))
 username = st.session_state.get('username')
 
 users = get_all_users()
@@ -62,7 +63,48 @@ def test_your_knowledge(val=False):
         8. Se quiser fazer a mesma prova novamente, na mesma seção, clique no botão RELOAD.
 
         """)
+        exam_qtd = st.selectbox(
+            'Você quer fazer uma prova inteira de um determinado ano ou uma quantidade específica de questões de vários anos?',
+            ('Questões de um determinado ano', 'Questões de anos variados'),
+            index=None,
+            placeholder='Escolha uma opção'
+        )
+        quiz = []
+        if exam_qtd == 'Questões de um determinado ano':
+            exams_years_options = [d['ano'] for d in database_questions]
+            exam_year = st.selectbox(
+                'Selecione o ano da prova que quer fazer',
+                exams_years_options,
+                index=None,
+                placeholder='Escolha uma opção'
+            )
+            quiz = [database_questions[i]['questoes'][0] for i in range(0, len(database_questions)) if database_questions[i]['ano'] == exam_year]
 
+        elif exam_qtd == 'Questões de anos variados':
+            all_list_subject = [q["disciplina"] for d in database_questions for q in d["questoes"]]
+            subject_list_options = sorted(list(set(all_list_subject)))
+            subject_list = st.multiselect('Selecione as disciplinas que quer fazer',
+                                          options=subject_list_options,
+                                          placeholder='Disciplinas')
+            quiz = []
+            for subject in subject_list:
+                qt_qu = st.selectbox(
+                    f'Quantas questões de {subject}?',
+                    ['Aleatório'] + [q for q in range(1, all_list_subject.count(subject) + 1)],
+                    index=None,
+                    placeholder='Escolha uma opção'
+                )
+                quiz_all = [database_questions[i]['questoes'] for i in range(0, len(database_questions))][0]
+                if qt_qu:
+                    questions_subject = [d for d in quiz_all if d["disciplina"] == subject]
+                    if qt_qu != 'Aleatório':
+                        rs = random.sample(questions_subject, k=qt_qu)
+                    else:
+                        ale = [a for a in range(1, len(questions_subject) + 1)]
+                        rs = random.sample(questions_subject, k=random.choice(ale))
+                    for r in rs:
+                        quiz.append(r)
+        
         scorecard_placeholder = st.empty()
         nl(2)
         ss = st.session_state
