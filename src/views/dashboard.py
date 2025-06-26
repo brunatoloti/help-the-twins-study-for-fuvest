@@ -122,8 +122,9 @@ col1, col2 = st.columns(2)
 
 with col1:
     count_best_subjects = sessions_results.groupby('subject').agg({'user_answers': 'sum', 'total_questions': 'count'}).reset_index()
-    count_best_subjects['utilization'] = count_best_subjects.apply(lambda x: f"{int(round(x['user_answers']/x['total_questions'], 2)*100)}%", axis=1)
+    count_best_subjects['utilization'] = count_best_subjects.apply(lambda x: int(round(x['user_answers']/x['total_questions'], 2)*100), axis=1)
     count_best_subjects = count_best_subjects.sort_values(by='utilization', ascending=False).head()
+    count_best_subjects['utilization'] = count_best_subjects['utilization'].apply(lambda x: f"{x}%")
     count_best_subjects = count_best_subjects.query("utilization != '0%'")
     chart2 = px.bar(count_best_subjects, x='utilization', y='subject', orientation='h',
                     height=500, title='As 5 disciplinas com mais aproveitamento',
