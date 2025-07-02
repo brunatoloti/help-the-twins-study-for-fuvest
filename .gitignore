@@ -7,4 +7,9 @@ __pycache__
 *.xlsx
 *.csv
 exams
+answers
 exams_extract
+questions
+questions_by_images
+questions_structure.py
+extract_text_from_pdf.py

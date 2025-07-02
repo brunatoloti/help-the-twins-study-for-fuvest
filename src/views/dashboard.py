@@ -2,6 +2,7 @@ from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+import pandas as pd
 
 
 from src.db import get_all_users, get_sessions_results_by_user
@@ -46,7 +47,8 @@ card3.add_trace(go.Indicator(
     value = sessions_results.user_answers.sum(),
     title = {'text': 'Total de acertos'}))
 card3.update_layout(height=250)
-value_card4 = datetime.today() - datetime.strptime(sessions_results.sort_values(by='created_at', ascending=False).iloc[0, 3], '%d/%m/%Y')
+sessions_results['data'] = pd.to_datetime(sessions_results['created_at'])
+value_card4 = datetime.today() - datetime.strptime(sessions_results.sort_values(by='data', ascending=False).iloc[0, 3], '%d/%m/%Y')
 card4 = go.Figure()
 card4.add_trace(go.Indicator(
     mode = 'number',
@@ -168,10 +170,16 @@ with col2:
                                                                                                                   'total_questions': 'count'}).reset_index()
     if sort_values_selection == 'Acertos':
         count_best_subjects_details = count_best_subjects_details.sort_values(by=['user_answers_titled', 'user_answers'], ascending=[True, False])
+        unique_values = count_best_subjects_details.head(10)[['subject', 'subject_detail']].drop_duplicates()
+        top = list(unique_values.itertuples(index=False, name=None))
+        count_best_subjects_details = count_best_subjects_details[count_best_subjects_details[['subject', 'subject_detail']].apply(tuple, axis=1).isin(top)]
     else:
         count_best_subjects_details = count_best_subjects_details.sort_values(by=['user_answers_titled', 'user_answers'], ascending=[False, False])
+        unique_values = count_best_subjects_details.head(10)[['subject', 'subject_detail']].drop_duplicates()
+        top = list(unique_values.itertuples(index=False, name=None))
+        count_best_subjects_details = count_best_subjects_details[count_best_subjects_details[['subject', 'subject_detail']].apply(tuple, axis=1).isin(top)]
     chart4 = px.bar(count_best_subjects_details, x='total_questions', y='subject_detail', color='user_answers_titled', orientation='h',
-                    height=500, title='Temas mais acertados e errados por disciplina',
+                    height=500, title='Os 10 temas mais acertados e errados por disciplina',
                     color_discrete_sequence=['#FF4B4B', "#CF7C7C"], text='user_answers', custom_data=['subject', 'user_answers', 'user_answers_titled'])
     chart4.update_traces(
         hovertemplate = 
