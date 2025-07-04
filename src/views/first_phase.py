@@ -1,8 +1,10 @@
 import ast
 from datetime import datetime
+from io import BytesIO
 import json
 import pandas as pd
 import random
+import requests
 import streamlit as st
 import time
 import uuid
@@ -166,7 +168,27 @@ def test_your_knowledge(val=False):
                             text_placeholder.write(f"**{row['texto_apoio']}**") 
                         
                         question_placeholder.write(f"**{row['enunciado']}**") 
-                        
+                        images_in_options = ast.literal_eval(row['imagens_nas_alternativas'])
+                        if images_in_options:
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                req = requests.get(f"https://drive.google.com/uc?export=view&id={images_in_options[0]}")
+                                image_data = BytesIO(req.content)
+                                st.image(image_data, caption='I')
+                                req = requests.get(f"https://drive.google.com/uc?export=view&id={images_in_options[1]}")
+                                image_data = BytesIO(req.content)
+                                st.image(image_data, caption='II')
+                                req = requests.get(f"https://drive.google.com/uc?export=view&id={images_in_options[2]}")
+                                image_data = BytesIO(req.content)
+                                st.image(image_data, caption='III')
+                            with col2:
+                                req = requests.get(f"https://drive.google.com/uc?export=view&id={images_in_options[3]}")
+                                image_data = BytesIO(req.content)
+                                st.image(image_data, caption='IV')
+                                req = requests.get(f"https://drive.google.com/uc?export=view&id={images_in_options[4]}")
+                                image_data = BytesIO(req.content)
+                                st.image(image_data, caption='V')
+
                         options = ast.literal_eval(row['alternativas'])
                         
                         options_placeholder.radio("", options, index=0, key=f"Q{current_question}")
@@ -174,9 +196,7 @@ def test_your_knowledge(val=False):
                         st.divider()
                         
                         if ss.stop:
-                            # Track length of user_answers
                             if len(ss.user_answers) < 90: 
-                                # comparing answers to track score
                                 correct_value = next(
                                     (alt for alt in options if alt.startswith(row['alternativa_correta'] + ")")),
                                     None
