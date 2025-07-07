@@ -154,20 +154,31 @@ def test_your_knowledge(val=False):
             with st.container():
                 if (ss.start):
                     for i, row in quiz.iterrows():
-                        number_placeholder = st.empty()
-                        text_placeholder = st.empty()
-                        question_placeholder = st.empty()
-                        options_placeholder = st.empty()
-                        results_placeholder = st.empty()
-                        expander_area = st.empty()
                         current_question = i+1
                         
-                        number_placeholder.write(f"**Questão {current_question}**")
-                        
+                        st.write(f"**Questão {current_question}**")
+                        images_in_questions = ast.literal_eval(row['imagens_nas_questoes'])
                         if row['texto_apoio']:
-                            text_placeholder.write(f"**{row['texto_apoio']}**") 
-                        
-                        question_placeholder.write(f"**{row['enunciado']}**") 
+                            text_enunc = row['texto_apoio'] + '\n\n' + row['enunciado']
+                        else:
+                            text_enunc = row['enunciado']
+                        if images_in_questions:
+                            if '{imagem}' in text_enunc:
+                                im_text = text_enunc.split('{imagem}')
+                                qt_im_text = len(images_in_questions) + 1
+                                for im in range(qt_im_text):
+                                    if im_text[im]:
+                                        st.markdown(f"<b>{im_text[im]}</b>", unsafe_allow_html=True)
+                                    if im < qt_im_text - 1:
+                                        req = requests.get(f"https://drive.google.com/uc?export=view&id={images_in_questions[im]}")
+                                        image_data_text = BytesIO(req.content)
+                                        st.image(image_data_text)
+                            else:
+                                st.markdown(f"<b>{text_enunc}</b>", unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"<b>{text_enunc}</b>", unsafe_allow_html=True)
+
+                        options = ast.literal_eval(row['alternativas'])
                         images_in_options = ast.literal_eval(row['imagens_nas_alternativas'])
                         if images_in_options:
                             col1, col2 = st.columns(2)
@@ -188,12 +199,9 @@ def test_your_knowledge(val=False):
                                 req = requests.get(f"https://drive.google.com/uc?export=view&id={images_in_options[4]}")
                                 image_data = BytesIO(req.content)
                                 st.image(image_data, caption='V')
-
-                        options = ast.literal_eval(row['alternativas'])
                         
-                        options_placeholder.radio("", options, index=0, key=f"Q{current_question}")
+                        st.radio("", options, index=0, key=f"Q{current_question}")
                         nl(1)
-                        st.divider()
                         
                         if ss.stop:
                             if len(ss.user_answers) < 90: 
@@ -208,11 +216,12 @@ def test_your_knowledge(val=False):
                             else:
                                 pass
                             if ss.user_answers[i] == True:
-                                results_placeholder.success("Correto")
+                                st.success("Correto")
                             else:
-                                results_placeholder.error("Incorreto")
+                                st.error("Incorreto")
                             
-                            expander_area.write(f"*{row['resolucao']}*\n\nAlternativa correta: {row['alternativa_correta']}")
+                            st.write(f"*{row['resolucao']}*\n\nAlternativa correta: {row['alternativa_correta']}")
+                        st.divider()
 
             if ss.stop:  
                 ss['grade'] = ss.user_answers.count(True)           
