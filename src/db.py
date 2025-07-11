@@ -15,12 +15,6 @@ def get_all_first_phase_questions():
     return questions
 
 
-def get_all_first_phase_answers():
-    conn = st.connection('gsheets', type=GSheetsConnection)
-    answers = conn.query('SELECT * FROM first_phase_answers;')
-    return answers
-
-
 def get_sessions_results_by_user(user_id):
     conn = st.connection('gsheets', type=GSheetsConnection)
     session_results = conn.query(f"""SELECT g.id, g.grade, g.total_questions, g.created_at, a.user_answers, a.subject, a.subject_detail

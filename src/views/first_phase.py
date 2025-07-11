@@ -9,12 +9,13 @@ import streamlit as st
 import time
 import uuid
 
-from src.db import get_all_users, save_answers_session, save_grade_session
+from src.db import get_all_users, save_answers_session, save_grade_session, get_all_first_phase_questions
 
 st.title('📚 Primeira fase')
 st.divider()
 
-database_questions = pd.read_json("data/questions_by_images/all/questions.json")
+database_questions = get_all_first_phase_questions()
+database_questions = database_questions.astype({'ano': int, 'numero': int})
 username = st.session_state.get('username')
 
 users = get_all_users()
