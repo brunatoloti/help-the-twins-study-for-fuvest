@@ -2,7 +2,6 @@ venv
 .env
 images
 *.json
-.streamlit
 __pycache__
 *.xlsx
 *.csv
@@ -13,3 +12,4 @@ questions
 questions_by_images
 questions_structure.py
 extract_text_from_pdf.py
+secrets.toml
