@@ -70,47 +70,7 @@ def test_your_knowledge(val=False):
            Porém, as alternativas indicadas como corretas seguem o gabarito oficial.
 
         """)
-        exam_qtd = st.selectbox(
-            'Você quer fazer uma prova inteira de um determinado ano ou uma quantidade específica de questões de vários anos?',
-            ('Questões de um determinado ano', 'Questões de anos variados'),
-            index=None,
-            placeholder='Escolha uma opção'
-        )
-        quiz = pd.DataFrame()
-        if exam_qtd == 'Questões de um determinado ano':
-            exams_years_options = database_questions['ano'].unique()
-            exam_year = st.selectbox(
-                'Selecione o ano da prova que quer fazer',
-                exams_years_options,
-                index=None,
-                placeholder='Escolha uma opção'
-            )
-            quiz = database_questions.query(f"ano == {exam_year}").reset_index(drop=True)
 
-        elif exam_qtd == 'Questões de anos variados':
-            all_list_subject = database_questions['disciplina'].unique()
-            subject_list_options = sorted(list(set(all_list_subject)))
-            subject_list = st.multiselect('Selecione as disciplinas que quer fazer',
-                                          options=subject_list_options,
-                                          placeholder='Disciplinas')
-            quiz = pd.DataFrame()
-            for subject in subject_list:
-                qt_qu = st.selectbox(
-                    f'Quantas questões de {subject}?',
-                    ['Aleatório'] + [q for q in range(1, list(all_list_subject).count(subject) + 1)],
-                    index=None,
-                    placeholder='Escolha uma opção'
-                )
-                if qt_qu:
-                    questions_subject = database_questions.query(f"disciplina == '{subject}'").reset_index(drop=True)
-                    if qt_qu != 'Aleatório':
-                        quiz = pd.concat([quiz, questions_subject.sample(n=qt_qu)])
-                    else:
-                        ale = [a for a in range(1, questions_subject.shape[0] + 1)]
-                        quiz = pd.concat([quiz, questions_subject.sample(n=random.choice(ale))])
-        
-        scorecard_placeholder = st.empty()
-        nl(2)
         ss = st.session_state
         
         if 'counter' not in ss:
@@ -129,6 +89,58 @@ def test_your_knowledge(val=False):
             ss['user_answers'] = []
         if 'grade' not in ss:
             ss['grade'] = 0
+        if 'quiz' not in ss:
+            ss['quiz'] = pd.DataFrame()
+
+        exam_qtd = st.selectbox(
+            'Você quer fazer uma prova inteira de um determinado ano ou uma quantidade específica de questões de vários anos?',
+            ('Questões de um determinado ano', 'Questões de anos variados'),
+            index=None,
+            placeholder='Escolha uma opção'
+        )
+
+        if exam_qtd == 'Questões de um determinado ano':
+            quiz = pd.DataFrame()
+            exams_years_options = database_questions['ano'].unique()
+            exam_year = st.selectbox(
+                'Selecione o ano da prova que quer fazer',
+                exams_years_options,
+                index=None,
+                placeholder='Escolha uma opção'
+            )
+            quiz = database_questions.query(f"ano == {exam_year}").reset_index(drop=True)
+            st.session_state.quiz = quiz
+
+        elif exam_qtd == 'Questões de anos variados':
+            col1, col2 = st.columns([3, 1])
+            all_list_subject = database_questions['disciplina'].unique()
+            subject_list_options = sorted(list(set(all_list_subject)))
+            with col1:
+                subject_list = st.multiselect('Selecione as disciplinas que quer fazer',
+                                              options=subject_list_options,
+                                              placeholder='Disciplinas')
+                qt_questions = {}
+                for subject in subject_list:
+                    max_linhas = database_questions[database_questions["disciplina"] == subject].shape[0]
+                    qt_questions[subject] = st.number_input(
+                        f"Número de questões para '{subject}' (máx: {max_linhas})",
+                        min_value=1,
+                        max_value=max_linhas,
+                        step=1,
+                        key=f"n_{subject}"
+                    )
+            with col2: 
+                st.write('Quando finalizar a escolha das disciplinas e o número de questões para cada uma, clique no botão.')
+                if st.button('Concluir', disabled=not subject_list):
+                    quiz = pd.concat([
+                        database_questions[database_questions["disciplina"] == subject].sample(n=n)
+                        for subject, n in qt_questions.items()
+                    ]).reset_index(drop=True)
+                    if ss.quiz.empty:
+                        st.session_state.quiz = quiz
+        
+        scorecard_placeholder = st.empty()
+        nl(2)
 
         def btn_click():
             ss.counter += 1
@@ -154,7 +166,7 @@ def test_your_knowledge(val=False):
         def quiz_app():
             with st.container():
                 if (ss.start):
-                    for i, row in quiz.iterrows():
+                    for i, row in st.session_state.quiz.iterrows():
                         current_question = i+1
                         
                         st.write(f"**Questão {current_question}**")
@@ -226,12 +238,12 @@ def test_your_knowledge(val=False):
 
             if ss.stop:  
                 ss['grade'] = ss.user_answers.count(True)           
-                scorecard_placeholder.write(f"### **Seu resultado final nessa tentativa : {ss['grade']} / {quiz.shape[0]}**")
+                scorecard_placeholder.write(f"### **Seu resultado final nessa tentativa : {ss['grade']} / {st.session_state.quiz.shape[0]}**")
                 answers_session_id = uuid.uuid4()
-                answers_session = pd.DataFrame({'user_answers': ss.user_answers, 'subject': list(quiz['disciplina']), 'subject_detail': list(quiz['assunto'])})
+                answers_session = pd.DataFrame({'user_answers': ss.user_answers, 'subject': list(st.session_state.quiz['disciplina']), 'subject_detail': list(st.session_state.quiz['assunto'])})
                 answers_session['id'] = answers_session_id
                 grade_session = pd.DataFrame({'id': [uuid.uuid4()], 'user_id': [user_logged_in['id'][0]],
-                                              'grade': [ss['grade']], 'total_questions': [quiz.shape[0]], 
+                                              'grade': [ss['grade']], 'total_questions': [st.session_state.quiz.shape[0]], 
                                               'answers_session_id': [answers_session_id], 'created_at': [datetime.today().strftime('%d/%m/%Y')]})
 
                 save_answers_session(answers_session)
