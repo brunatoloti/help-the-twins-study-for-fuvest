@@ -51,7 +51,8 @@ def test_your_knowledge(val=False):
         1. Selecione se quer fazer uma prova de um ano específico ou de anos variados.
             
         2. Se quiser fazer uma prova de um ano específico, selecione o ano que deseja fazer. 
-           Se quiser fazer uma prova de anos variados, escolha as disciplinas que deseja fazer e quantas questões de cada.
+           Se quiser fazer uma prova de anos variados, escolha as disciplinas que deseja fazer e quantas questões de cada. 
+           Para o caso de anos variados, após escolher as disciplinas e as quantidades de cada uma, clique no botão CHOSEN.
 
         3. Quando estiver pronto, clique no botão START.
                     
@@ -131,7 +132,7 @@ def test_your_knowledge(val=False):
                     )
             with col2: 
                 st.write('Quando finalizar a escolha das disciplinas e o número de questões para cada uma, clique no botão.')
-                if st.button('Concluir', disabled=not subject_list):
+                if st.button('CHOSEN', disabled=not subject_list):
                     quiz = pd.concat([
                         database_questions[database_questions["disciplina"] == subject].sample(n=n)
                         for subject, n in qt_questions.items()
