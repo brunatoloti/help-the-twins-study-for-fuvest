@@ -19,7 +19,7 @@ database_questions = database_questions.astype({'ano': int, 'numero': int})
 username = st.session_state.get('username')
 
 users = get_all_users()
-user_logged_in = users[users['first_name'].str.lower()+users['last_name'].str.lower() == username]
+user_logged_in = users[users['first_name'].str.lower()+users['last_name'].str.lower() == username].reset_index(drop=True)
 
 def nl(num_of_lines):
     for i in range(num_of_lines):

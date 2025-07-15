@@ -25,6 +25,7 @@ Após a coleta das questões, elas passaram por um script criado que se usa de u
  - enunciado
  - texto de apoio, se houver
  - alternativas
+
 Além disso, foi possível também:
  - gerar uma resolução detalhada
  - identificar a alternativa correta
