@@ -114,32 +114,45 @@ if st.session_state['authentication_status']:
                 st.session_state.quiz = quiz
 
             elif exam_qtd == 'Questões de anos variados':
-                col1, col2 = st.columns([3, 1])
-                all_list_subject = database_questions['disciplina'].unique()
-                subject_list_options = sorted(list(set(all_list_subject)))
-                with col1:
-                    subject_list = st.multiselect('Selecione as disciplinas que quer fazer',
-                                                options=subject_list_options,
-                                                placeholder='Disciplinas')
-                    qt_questions = {}
-                    for subject in subject_list:
-                        max_linhas = database_questions[database_questions["disciplina"] == subject].shape[0]
-                        qt_questions[subject] = st.number_input(
-                            f"Número de questões para '{subject}' (máx: {max_linhas})",
-                            min_value=1,
-                            max_value=max_linhas,
-                            step=1,
-                            key=f"n_{subject}"
-                        )
-                with col2: 
-                    st.write('Quando finalizar a escolha das disciplinas e o número de questões para cada uma, clique no botão.')
-                    if st.button('CHOSEN', disabled=not subject_list):
-                        quiz = pd.concat([
-                            database_questions[database_questions["disciplina"] == subject].sample(n=n)
-                            for subject, n in qt_questions.items()
-                        ]).reset_index(drop=True)
-                        if ss.quiz.empty:
-                            st.session_state.quiz = quiz
+                exam_varied_types = st.selectbox(
+                    'Você quer fazer por disciplina ou por assunto?',
+                    ('Por disciplina', 'Por assunto'),
+                    index=None,
+                    placeholder='Escolha uma opção'
+                )
+                if exam_varied_types == 'Por disciplina':
+                    evt = 'disciplina'
+                    nn = 'as'
+                elif exam_varied_types == 'Por assunto':
+                    evt = 'assunto'
+                    nn = 'os'
+                if exam_varied_types:
+                    col1, col2 = st.columns([3, 1])
+                    all_list_subject = database_questions[evt].unique()
+                    subject_list_options = sorted(list(set(all_list_subject)))
+                    with col1:
+                        subject_list = st.multiselect(f'Selecione {nn} {evt}s que quer fazer',
+                                                    options=subject_list_options,
+                                                    placeholder=evt.title())
+                        qt_questions = {}
+                        for subject in subject_list:
+                            max_linhas = database_questions[database_questions[evt] == subject].shape[0]
+                            qt_questions[subject] = st.number_input(
+                                f"Número de questões para '{subject}' (máx: {max_linhas})",
+                                min_value=1,
+                                max_value=max_linhas,
+                                step=1,
+                                key=f"n_{subject}"
+                            )
+                    with col2: 
+                        st.write(f'Quando finalizar a escolha d{nn} {evt}s e o respectivo número de questões, clique no botão.')
+                        if st.button('CHOSEN', disabled=not subject_list):
+                            quiz = pd.concat([
+                                database_questions[database_questions[evt] == subject].sample(n=n)
+                                for subject, n in qt_questions.items()
+                            ]).reset_index(drop=True)
+                            if ss.quiz.empty:
+                                st.session_state.quiz = quiz
             
             scorecard_placeholder = st.empty()
             nl(2)
@@ -215,7 +228,7 @@ if st.session_state['authentication_status']:
                                     image_data = BytesIO(req.content)
                                     st.image(image_data, caption='V')
                             
-                            st.radio("", options, index=0, key=f"Q{current_question}")
+                            st.radio("abcde", options, index=0, key=f"Q{current_question}", label_visibility='hidden')
                             nl(1)
                             
                             if ss.stop:
