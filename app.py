@@ -29,7 +29,6 @@ authenticator = stauth.Authenticate(credentials, "simulado_fuvest", "abcdef", co
 
 authenticator.login("main", "Login")
 authentication_status = st.session_state['authentication_status']
-st.session_state["authenticator"] = authenticator
 
 if authentication_status == False:
     st.error("Usuário/senha está incorreto")
