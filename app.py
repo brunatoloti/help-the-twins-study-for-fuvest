@@ -1,7 +1,7 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 
-from src.db import get_all_users
+from src.db import get_all_users, get_c
 
 
 dashboard = st.Page(
@@ -17,6 +17,7 @@ second_phase = st.Page(
 st.set_page_config(layout="wide", page_title="Simulado Fuvest", page_icon="📚")
 
 users = get_all_users().to_dict()
+c = get_c()
 
 emails = [v for k, v in users['email'].items()]
 first_names = [v for k, v in users['first_name'].items()]
@@ -25,7 +26,7 @@ hashed_passwords = [v for k, v in users['password'].items()]
 
 credentials = {"usernames": {first_name+last_name: {"name": first_name, "password": password, "email": email} for first_name, last_name, password, email in zip(first_names, last_names, hashed_passwords, emails)}}
 
-authenticator = stauth.Authenticate(credentials, "simulado_fuvest", "abcdef", cookie_expiry_days=30)
+authenticator = stauth.Authenticate(credentials, c['cookie_name'][0], c['cookie_key'][0], cookie_expiry_days=30)
 
 authenticator.login("main", "Login")
 authentication_status = st.session_state['authentication_status']

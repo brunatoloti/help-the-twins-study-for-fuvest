@@ -40,3 +40,9 @@ def save_answers_session(df):
     df = pd.concat([aso, df])
     conn.update(worksheet='answers_session', data=df)
     st.cache_data.clear()
+
+
+def get_c():
+    conn = st.connection('gsheets', type=GSheetsConnection)
+    result = conn.query('SELECT * FROM c')
+    return result
